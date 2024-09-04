@@ -1,13 +1,14 @@
-from fastapi import APIRouter
-from src.schemes import Echo
+from fastapi import FastAPI
 
-router = APIRouter()
+# Импорт схем для создания постов
+from src.schemes import PostCreate, PostResponse
 
-@router.get('/')
-def hello() -> str:
-    return {'Hello': 'World'}
+app = FastAPI()
 
-@router.post('/echo/')
-def echo(payload: Echo):
-    return {'data': payload.stroka}
+# Тут нужна база данных для хранения постов 
 
+@app.post('/posts/')
+def create_post(post: PostCreate):
+    new_post = {}
+    
+    return new_post
