@@ -1,14 +1,17 @@
-from fastapi import FastAPI
+from fastapi import APIRouter
+from datetime import datetime
 
 # Импорт схем для создания постов
 from src.schemes import PostCreate, PostResponse
+from src.service import add_article_with_tags 
 
-app = FastAPI()
+router = APIRouter() 
 
-# Тут нужна база данных для хранения постов 
-
-@app.post('/posts/')
+# Функция для создания постов 
+@router.post('/posts/')
 def create_post(post: PostCreate):
-    new_post = {}
+
+    # Сохраняем пост в базу данных
+    result = add_article_with_tags(post.title, post.content, post.tags)
     
-    return new_post
+    return result
