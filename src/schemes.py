@@ -16,34 +16,27 @@ class UserResponse(BaseModel):
     is_active: bool
     created_at: datetime
 
-    class Config:
-        orm_mode = True
-
 # Схема для обновления данных пользователя
 class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, min_length=3, max_length=50)
     email: Optional[EmailStr]
     password: Optional[str] = Field(None, min_length=6)
 
-# Схема для создания поста
-class PostCreate(BaseModel):
+# Схема для создания статьи
+class ArticleCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=100)
     content: str = Field(..., min_length=1)
     tags: List[str]
+    updated_at: datetime
 
-# Схема для отображения информации о посте
-class PostResponse(BaseModel):
+# Схема для изменения статьи 
+class ArticleUpdate(BaseModel):
     id: int
-    title: str
-    content: str
-    published: bool
-    created_at: datetime
-    author: UserResponse
+    title: Optional[str] = Field(None, min_length=1, max_length=100)
+    contents: Optional[str] = Field(None, min_lenght=1)
+    tags: List[str]
+    updated_at: datetime
 
-    class Config:
-        orm_mode = True
-        
-# Схема для списка постов
-class PostListResponse(BaseModel):
-    posts: List[PostResponse]
-    total: int
+# Схема для удаления статьи
+class ArticleDelete(BaseModel):
+    id: int
