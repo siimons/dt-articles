@@ -1,5 +1,6 @@
 from fastapi import HTTPException
 from datetime import datetime
+from typing import List
 from decouple import config 
 
 from mysql.connector import Error
@@ -171,6 +172,77 @@ def delete_article_from_db(article_id: int) -> dict:
         # Возвращаем сообщение об ошибке
         return {'message': f'Ошибка: {e}'}
 
+    finally:
+        # Закрыть соединение
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+# Функция для извлечения из базы данных всех id статей 
+def get_all_article_ids() -> List[int]:
+    try:
+        # Установить соединение с базой данных
+        connection = mysql.connector.connect(
+            host=HOST,
+            database=DATABASE,
+            user=USER,
+            password=PASSWORD
+        )
+
+        if connection.is_connected():
+            cursor = connection.cursor()
+            
+            # SQL-запрос для получения всех id статей
+            select_query = "SELECT id FROM articles"
+            cursor.execute(select_query)
+            
+            # Извлекаем все результаты запроса
+            result = cursor.fetchall()
+
+            # Возвращаем список id
+            article_ids = [row[0] for row in result]
+            return article_ids
+
+    except Error as e:
+        print(f"Ошибка при подключении к базе данных: {e}")
+        return []
+
+    finally:
+        # Закрыть соединение
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+            
+# Функция для получения статьи по ID
+def get_article_by_id(article_id: int) -> dict:
+    try:
+        # Установить соединение с базой данных
+        connection = mysql.connector.connect(
+            host=HOST,
+            database=DATABASE,
+            user=USER,
+            password=PASSWORD
+        )
+
+        if connection.is_connected():
+            cursor = connection.cursor(dictionary=True)
+            # SQL-запрос для получения статьи по ID
+            select_article_query = """
+            SELECT id, title, content, created_at, updated_at 
+            FROM articles 
+            WHERE id = %s
+            """
+            cursor.execute(select_article_query, (article_id,))
+            article = cursor.fetchone()
+            
+            if article:
+                return article
+            else:
+                return {'message': 'Статья не найдена'}
+
+    except Error as e:
+        return {'error': str(e)}
+    
     finally:
         # Закрыть соединение
         if connection.is_connected():

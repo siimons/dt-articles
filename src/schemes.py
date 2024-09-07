@@ -40,3 +40,16 @@ class ArticleUpdate(BaseModel):
 # Схема для удаления статьи
 class ArticleDelete(BaseModel):
     id: int
+    
+# Схема для получения всей id статей
+class ArticleIDs(BaseModel):
+    ids: List[int]
+    
+# Схема для получения какой-то отдельной статьи
+class Article(BaseModel):
+    id: int
+    title: str
+    content: str
+    tags: List[str]
+    created_at: datetime
+    updated_at: Optional[datetime] = None

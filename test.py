@@ -7,8 +7,12 @@ new_post = {
     'tags': ['#Python', '#ML-инженер', '#Карьера', '#IT']
 }
 
+delete_post = {
+    'id': 1
+}
+
 try:
-    r = requests.post('http://localhost:8000/posts/', json=new_post)
+    r = requests.delete('http://localhost:8000/article/{id}', json=delete_post)
     
     r.raise_for_status()
 
