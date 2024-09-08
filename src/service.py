@@ -3,8 +3,8 @@ from datetime import datetime
 from typing import List
 from decouple import config 
 
+from src.utils import get_db_connection
 from mysql.connector import Error
-import mysql.connector
 
 HOST = config('HOST')
 DATABASE = config('DATABASE')
@@ -15,18 +15,13 @@ PASSWORD = config('PASSWORD')
 def add_article_with_tags(title: str, content: str, tags: list[str], updated_at: datetime) -> dict:
     try:
         # Установить соединение с базой данных
-        connection = mysql.connector.connect(
-            host=HOST,
-            database=DATABASE,  
-            user=USER,          
-            password=PASSWORD        
-        )
+        connection = get_db_connection()
 
         if connection.is_connected():
             cursor = connection.cursor()
 
-            # Получить текущее время
-            # updated_at = datetime.now()
+            # Начало транзакции
+            connection.start_transaction()
 
             # 1. Вставка новой статьи с указанием времени создания
             insert_article_query = """
@@ -38,25 +33,41 @@ def add_article_with_tags(title: str, content: str, tags: list[str], updated_at:
             # Получение ID вставленной статьи
             article_id = cursor.lastrowid
 
-            # 2. Работа с тегами
+            # 2. Загрузка всех существующих тегов одним запросом
+            select_existing_tags_query = 'SELECT id, name FROM tags WHERE name IN (%s)' % ','.join(['%s'] * len(tags))
+            cursor.execute(select_existing_tags_query, tags)
+            existing_tags = {row[1]: row[0] for row in cursor.fetchall()}
+
+            # Списки для новых тегов и их связей с статьей
+            new_tags = []
+            article_tag_relations = []
+
             for tag in tags:
-                # Проверка, существует ли тег в базе данных
-                select_tag_query = 'SELECT id FROM tags WHERE name = %s'
-                cursor.execute(select_tag_query, (tag,))
-                result = cursor.fetchone()
-
-                if result:
-                    # Тег уже существует, получаем его ID
-                    tag_id = result[0]
+                if tag in existing_tags:
+                    # Тег уже существует
+                    tag_id = existing_tags[tag]
                 else:
-                    # Если тега нет, вставляем новый тег
-                    insert_tag_query = 'INSERT INTO tags (name) VALUES (%s)'
-                    cursor.execute(insert_tag_query, (tag,))
-                    tag_id = cursor.lastrowid
+                    # Добавление нового тега
+                    new_tags.append(tag)
 
-                # 3. Связь статьи с тегами через таблицу article_tags
-                insert_article_tag_query = 'INSERT INTO article_tags (article_id, tag_id) VALUES (%s, %s)'
-                cursor.execute(insert_article_tag_query, (article_id, tag_id))
+            if new_tags:
+                # Вставляем новые теги пакетно
+                insert_tags_query = 'INSERT INTO tags (name) VALUES (%s)'
+                cursor.executemany(insert_tags_query, [(tag,) for tag in new_tags])
+
+                # Получаем ID добавленных тегов
+                cursor.execute(select_existing_tags_query, new_tags)
+                new_tag_ids = {row[1]: row[0] for row in cursor.fetchall()}
+
+                # Обновляем словарь существующих тегов новыми тегами
+                existing_tags.update(new_tag_ids)
+
+            # Формируем список связей статьи с тегами
+            article_tag_relations = [(article_id, existing_tags[tag]) for tag in tags]
+
+            # 3. Связываем статью с тегами пакетно
+            insert_article_tag_query = 'INSERT INTO article_tags (article_id, tag_id) VALUES (%s, %s)'
+            cursor.executemany(insert_article_tag_query, article_tag_relations)
 
             # Фиксируем все изменения
             connection.commit()
@@ -64,30 +75,26 @@ def add_article_with_tags(title: str, content: str, tags: list[str], updated_at:
             return {'message': 'Статья и теги успешно добавлены!', 'article_id': article_id}
 
     except Error as e:
+        connection.rollback()  # Откатываем транзакцию в случае ошибки
         return HTTPException(status_code=500, detail=f'Ошибка: {e}')
-        
+
     finally:
         # Закрыть соединение
         if connection.is_connected():
             cursor.close()
             connection.close()
-            
+
 # Функция для изменения статьи
 def update_article_and_tags(id: int, title: str, contents: str, tags: list[str], updated_at: datetime) -> dict:
     try:
         # Установить соединение с базой данных
-        connection = mysql.connector.connect(
-            host=HOST,
-            database=DATABASE,
-            user=USER,
-            password=PASSWORD
-        )
+        connection = get_db_connection()
 
         if connection.is_connected():
             cursor = connection.cursor()
-            
-            # Получить текущее время
-            # updated_at = datetime.now()
+
+            # Начало транзакции
+            connection.start_transaction()
 
             # 1. Обновление статьи
             update_article_query = """
@@ -102,25 +109,41 @@ def update_article_and_tags(id: int, title: str, contents: str, tags: list[str],
             delete_article_tags_query = 'DELETE FROM article_tags WHERE article_id = %s'
             cursor.execute(delete_article_tags_query, (id,))
 
-            # Добавляем новые связи статьи с тегами
+            # 3. Загрузка всех существующих тегов одним запросом
+            select_existing_tags_query = 'SELECT id, name FROM tags WHERE name IN (%s)' % ','.join(['%s'] * len(tags))
+            cursor.execute(select_existing_tags_query, tags)
+            existing_tags = {row[1]: row[0] for row in cursor.fetchall()}
+
+            # Списки для новых тегов и их связей с статьей
+            new_tags = []
+            article_tag_relations = []
+
             for tag in tags:
-                # Проверка, существует ли тег в базе данных
-                select_tag_query = 'SELECT id FROM tags WHERE name = %s'
-                cursor.execute(select_tag_query, (tag,))
-                result = cursor.fetchone()
-
-                if result:
-                    # Тег уже существует, получаем его ID
-                    tag_id = result[0]
+                if tag in existing_tags:
+                    # Тег уже существует
+                    tag_id = existing_tags[tag]
                 else:
-                    # Если тега нет, вставляем новый тег
-                    insert_tag_query = 'INSERT INTO tags (name) VALUES (%s)'
-                    cursor.execute(insert_tag_query, (tag,))
-                    tag_id = cursor.lastrowid
+                    # Добавление нового тега
+                    new_tags.append(tag)
 
-                # Связь статьи с тегами через таблицу article_tags
-                insert_article_tag_query = 'INSERT INTO article_tags (article_id, tag_id) VALUES (%s, %s)'
-                cursor.execute(insert_article_tag_query, (id, tag_id))
+            if new_tags:
+                # Вставляем новые теги пакетно
+                insert_tags_query = 'INSERT INTO tags (name) VALUES (%s)'
+                cursor.executemany(insert_tags_query, [(tag,) for tag in new_tags])
+
+                # Получаем ID добавленных тегов
+                cursor.execute(select_existing_tags_query, new_tags)
+                new_tag_ids = {row[1]: row[0] for row in cursor.fetchall()}
+
+                # Обновляем словарь существующих тегов новыми тегами
+                existing_tags.update(new_tag_ids)
+
+            # Формируем список связей статьи с тегами
+            article_tag_relations = [(id, existing_tags[tag]) for tag in tags]
+
+            # Связываем статью с тегами пакетно
+            insert_article_tag_query = 'INSERT INTO article_tags (article_id, tag_id) VALUES (%s, %s)'
+            cursor.executemany(insert_article_tag_query, article_tag_relations)
 
             # Фиксируем все изменения
             connection.commit()
@@ -128,7 +151,7 @@ def update_article_and_tags(id: int, title: str, contents: str, tags: list[str],
             return {'message': 'Статья и теги успешно обновлены!', 'article_id': id}
 
     except Error as e:
-        # В случае ошибки возвращаем HTTPException с кодом 500
+        connection.rollback()  # Откатываем транзакцию в случае ошибки
         return HTTPException(status_code=500, detail=f'Ошибка: {e}')
 
     finally:
@@ -136,17 +159,12 @@ def update_article_and_tags(id: int, title: str, contents: str, tags: list[str],
         if connection.is_connected():
             cursor.close()
             connection.close()
-            
+
 # Функция для удаления статьи из базы данных
 def delete_article_from_db(article_id: int) -> dict:
     try:
         # Установить соединение с базой данных
-        connection = mysql.connector.connect(
-            host=HOST,
-            database=DATABASE,
-            user=USER,
-            password=PASSWORD
-        )
+        connection = get_db_connection()
 
         if connection.is_connected():
             cursor = connection.cursor()
@@ -182,12 +200,7 @@ def delete_article_from_db(article_id: int) -> dict:
 def get_all_article_ids() -> List[int]:
     try:
         # Установить соединение с базой данных
-        connection = mysql.connector.connect(
-            host=HOST,
-            database=DATABASE,
-            user=USER,
-            password=PASSWORD
-        )
+        connection = get_db_connection()
 
         if connection.is_connected():
             cursor = connection.cursor()
@@ -217,12 +230,7 @@ def get_all_article_ids() -> List[int]:
 def get_article_by_id(article_id: int) -> dict:
     try:
         # Установить соединение с базой данных
-        connection = mysql.connector.connect(
-            host=HOST,
-            database=DATABASE,
-            user=USER,
-            password=PASSWORD
-        )
+        connection = get_db_connection()
 
         if connection.is_connected():
             cursor = connection.cursor(dictionary=True)

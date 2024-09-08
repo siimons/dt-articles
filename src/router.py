@@ -1,23 +1,23 @@
 from fastapi import APIRouter
-from datetime import datetime
 
-from src.schemes import ArticleCreate
-from src.service import add_article_with_tags 
- 
-from src.schemes import ArticleUpdate
-from src.service import update_article_and_tags 
+from src.schemes import (
+    ArticleCreate,
+    ArticleUpdate,
+    ArticleDelete,
+    ArticleIDs,
+    Article
+)
 
-from src.schemes import ArticleDelete
-from src.service import delete_article_from_db
+from src.service import (
+    add_article_with_tags,
+    update_article_and_tags,
+    delete_article_from_db, 
+    get_all_article_ids,
+    get_article_by_id
+)
 
-from src.schemes import ArticleIDs
-from src.service import get_all_article_ids
+router = APIRouter()
 
-from src.schemes import Article
-from src.service import get_article_by_id
-
-router = APIRouter() 
- 
 @router.post('/article/')
 def create_article(article: ArticleCreate):
 
