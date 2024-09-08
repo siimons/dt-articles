@@ -27,7 +27,6 @@ class ArticleCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=100)
     content: str = Field(..., min_length=1)
     tags: List[str]
-    updated_at: datetime
 
 # Схема для изменения статьи 
 class ArticleUpdate(BaseModel):

@@ -21,7 +21,7 @@ router = APIRouter()
 @router.post('/api/article/')
 def create_article(article: ArticleCreate):
 
-    result = add_article_with_tags(article.title, article.content, article.tags, article.updated_at)
+    result = add_article_with_tags(article.title, article.content, article.tags)
     
     return result
 
@@ -33,9 +33,9 @@ def update_article(article: ArticleUpdate):
     return result
 
 @router.delete('/api/article/{id}')
-def delete_article(article: ArticleDelete):
+def delete_article(id: int):
     
-    result = delete_article_from_db(article.id)
+    result = delete_article_from_db(id)
     
     return result
 

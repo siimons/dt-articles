@@ -1,18 +1,12 @@
 from fastapi import HTTPException
 from datetime import datetime
 from typing import List
-from decouple import config 
 
 from src.utils import get_db_connection
 from mysql.connector import Error
 
-HOST = config('HOST')
-DATABASE = config('DATABASE')
-USER = config('USER')
-PASSWORD = config('PASSWORD')
-
 # Функция для сохранения статьи в базу данных
-def add_article_with_tags(title: str, content: str, tags: list[str], updated_at: datetime) -> dict:
+def add_article_with_tags(title: str, content: str, tags: list[str]) -> dict:
     try:
         # Установить соединение с базой данных
         connection = get_db_connection()
@@ -28,7 +22,9 @@ def add_article_with_tags(title: str, content: str, tags: list[str], updated_at:
             INSERT INTO articles (title, content, created_at)
             VALUES (%s, %s, %s)
             """
-            cursor.execute(insert_article_query, (title, content, updated_at))
+
+            created_at = datetime.now()
+            cursor.execute(insert_article_query, (title, content, created_at))
 
             # Получение ID вставленной статьи
             article_id = cursor.lastrowid
@@ -78,7 +74,7 @@ def add_article_with_tags(title: str, content: str, tags: list[str], updated_at:
         connection.rollback()  # Откатываем транзакцию в случае ошибки
         return HTTPException(status_code=500, detail=f'Ошибка: {e}')
 
-    finally:
+    finally:    
         # Закрыть соединение
         if connection.is_connected():
             cursor.close()
@@ -186,9 +182,11 @@ def delete_article_from_db(article_id: int) -> dict:
 
             return {'message': 'Статья успешно удалена'}
 
-    except Error as e:
+    except HTTPException as e:
         # Возвращаем сообщение об ошибке
+        print(e)
         return {'message': f'Ошибка: {e}'}
+        
 
     finally:
         # Закрыть соединение
