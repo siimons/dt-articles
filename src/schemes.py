@@ -34,7 +34,6 @@ class ArticleUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=100)
     contents: Optional[str] = Field(None, min_lenght=1)
     tags: List[str]
-    updated_at: datetime
 
 # Схема для удаления статьи
 class ArticleDelete(BaseModel):

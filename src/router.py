@@ -19,36 +19,36 @@ from src.service import (
 router = APIRouter()
 
 @router.post('/api/article/')
-def create_article(article: ArticleCreate):
+async def create_article(article: ArticleCreate):
 
-    result = add_article_with_tags(article.title, article.content, article.tags)
+    result = await add_article_with_tags(article.title, article.content, article.tags)
     
     return result
 
 @router.put('/api/article/{id}')
-def update_article(article: ArticleUpdate):
+async def update_article(article: ArticleUpdate):
     
-    result = update_article_and_tags(article.id, article.title, article.contents, article.tags, article.updated_at)
+    result = await update_article_and_tags(article.id, article.title, article.contents, article.tags, article.updated_at)
     
     return result
 
 @router.delete('/api/article/{id}')
-def delete_article(id: int):
+async def delete_article(id: int):
     
-    result = delete_article_from_db(id)
+    result = await delete_article_from_db(id)
     
     return result
 
 @router.get('/api/articles/ids', response_model=ArticleIDs)
-def fetch_article_ids():
+async def fetch_article_ids():
     
-    article_ids = get_all_article_ids()
+    article_ids = await get_all_article_ids()
     
     return ArticleIDs(ids=article_ids)
 
 @router.get('/api/article/{article_id}', response_model=Article)
-def read_article(article_id: int):
+async def read_article(article_id: int):
     
-    result = get_article_by_id(article_id)
+    result = await get_article_by_id(article_id)
     
     return result

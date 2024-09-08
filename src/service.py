@@ -81,7 +81,7 @@ def add_article_with_tags(title: str, content: str, tags: list[str]) -> dict:
             connection.close()
 
 # Функция для изменения статьи
-def update_article_and_tags(id: int, title: str, contents: str, tags: list[str], updated_at: datetime) -> dict:
+def update_article_and_tags(id: int, title: str, contents: str, tags: list[str]) -> dict:
     try:
         # Установить соединение с базой данных
         connection = get_db_connection()
@@ -98,7 +98,9 @@ def update_article_and_tags(id: int, title: str, contents: str, tags: list[str],
             SET title = %s, contents = %s, updated_at = %s
             WHERE id = %s
             """
-            cursor.execute(update_article_query, (title, contents, updated_at, id))
+            
+            created_at = datetime.now()
+            cursor.execute(update_article_query, (title, contents, created_at, id))
 
             # 2. Работа с тегами
             # Удаляем старые связи статьи с тегами
@@ -184,10 +186,8 @@ def delete_article_from_db(article_id: int) -> dict:
 
     except HTTPException as e:
         # Возвращаем сообщение об ошибке
-        print(e)
         return {'message': f'Ошибка: {e}'}
         
-
     finally:
         # Закрыть соединение
         if connection.is_connected():
