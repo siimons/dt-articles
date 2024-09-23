@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from src.schemes import (
+from src.schemas import (
     ArticleCreate,
     ArticleUpdate,
     ArticleDelete,

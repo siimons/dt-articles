@@ -10,11 +10,6 @@ USER = config('USER')
 PASSWORD = config('PASSWORD')
 
 
-#################
-### Functions ###
-#################
-
-
 def get_db_connection() -> PooledMySQLConnection | MySQLConnectionAbstract:
     return mysql.connector.connect(
         host=HOST,
