@@ -11,7 +11,7 @@ from src.exceptions import (
     invalid_article_data_exception
 )
 
-from src.schemes import (
+from src.schemas import (
     ArticleCreate,
     ArticleUpdate,
     ArticleDelete,
