@@ -9,8 +9,6 @@ new_post = {
 
 def delete_article(id):
     try:
-
-        
         r = requests.delete(f'http://localhost:8000/api/article/{id}')
         
         r.raise_for_status()
