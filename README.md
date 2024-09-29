@@ -1,92 +1,50 @@
-## Файловая структура проекта
+# Article Service - Dev Talk
+
+## Описание
+
+dt-articles — это микросервис для работы со статьями в проекте **Dev Talk**. Он предоставляет RESTful API для создания, обновления, удаления и получения статей. Сервис разработан на базе FastAPI и использует MySQL в качестве базы данных. Взаимодействие с другими микросервисами происходит через Kafka и кэширование данных реализовано с помощью Redis.
+
+## Файловая структура микросервиса
 
 ```
-articols
-├── alembic/ # Для миграции базы данных
-├── src # Основные файлы
-│   ├── auth
-│   │   ├── router.py # роуты
-│   │   ├── schemas.py  # pydantic models (для запросов)
-│   │   ├── models.py  # db models
-│   │   ├── dependencies.py # скорее всего не нужно будет
-│   │   ├── config.py  # local configs
-│   │   ├── constants.py
-│   │   ├── exceptions.py
-│   │   ├── service.py # бизнес-логика
-│   │   └── utils.py # функции для работы
-│   ├── articles
-│   │   ├── router.py  
-│   │   ├── schemas.py
-│   │   ├── config.py
-│   │   ├── constants.py
-│   │   ├── exceptions.py
-│   │   └── utils.py
-│   └── comments
-│   │   ├── router.py
-│   │   ├── schemas.py
-│   │   ├── models.py
-│   │   ├── dependencies.py
-│   │   ├── constants.py
-│   │   ├── exceptions.py
-│   │   ├── service.py
-│   │   └── utils.py
-│   ├── config.py  # global configs
-│   ├── models.py  # global models
-│   ├── exceptions.py  # global exceptions
-│   ├── pagination.py  # global module e.g. pagination
-│   ├── database.py  # db connection related stuff
-│   └── main.py
+dev-talk-articles/
+├── src/
+│   ├── exceptions.py           # Обработка исключений
+│   ├── router.py               # Маршруты для CRUD-операций со статьями
+│   ├── schemas.py              # Pydantic-схемы для запросов и ответов
+│   ├── service.py              # Бизнес-логика для работы со статьями
+│   ├── models.sql              # Описание моделей данных (таблицы базы данных)
+│   ├── dependencies.py         # Зависимости
+│   ├── config.py               # Конфигурации микросервиса
+│   ├── kafka_producer.py       # Продюсер Kafka для уведомлений
+│   ├── kafka_consumer.py       # Консьюмер Kafka
+│   ├── redis_cache.py          # Кэширование данных о статьях
+│   └── utils.py                # Вспомогательные функции
 ├── tests/
-│   ├── auth
-│   ├── articles
-│   └── comments
-├── templates/
-│   └── index.html
-├── requirements
-│   ├── base.txt
-│   ├── dev.txt
-│   └── prod.txt
-├── .env
-├── .gitignore
-├── logging.ini
-└── alembic.ini
+│   ├── test_articles.py        # Тесты для бизнес-логики и API
+│   └── test_schemas.py         # Тесты для схем
+├── Dockerfile                  # Docker-конфигурация для микросервиса
+├── main.py                     # Точка входа для FastAPI
+├── requirements.txt            # Зависимости Python
+└── .env                        # Переменные окружения
 ```
 
+## Функциональность
 
-
-## CRUD
+### CRUD
 
 Нужно создать ручки с помощью FastAPI.
 
-### Статьи
+- POST `/api/article` — создание новой статьи
+- PUT `/api/article/{id}` — обновление существующей статьи по ID
+- DELETE `/api/article/{id}` — удаление статьи по ID
+- GET `/api/articles/ids` — получение списка всех ID статей
+- GET `/api/article/{article_id}` — получение информации о статье по её ID
 
-- POST `/api/article/` - Создание статьи
+## Стек технологий
 
-- PUT `/api/article/{id}` - Изменение статьи
-
-- DELETE `/api/article/{id}` - Удаление статьи
-
-- GET `/api/articles/` - Получить все id статей
-
-- GET `/api/article/{article_id}` - Получить какую-то отдельную статью (пригождается редко)
-
-### Теги
-
-Начинаются с символа #. На одной статье может быть не больше шести
-
-- GET `/api/tags/{article_id}`
-
-```json
-[
-    {
-        "id": "1241293",
-        "tags": "C++, ML"
-    }
-]
-```
-
-- POST `/api/tags/` - На вход подаём список с тегами. На Backend'e проверяем, есть ли тег в базе. Если есть, не добавляем
-
-### Комментарии
-
-- GET `/api/comments/{article_id}`
+- **FastAPI** — для создания REST API.
+- **Redis** — для кэширования популярных комментариев.
+- **Kafka** — для обмена сообщениями между микросервисами.
+- **Docker** — для контейнеризации приложения.
+- **MySQL** — в качестве основной базы данных.
