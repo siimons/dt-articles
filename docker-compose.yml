@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: my_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "5432:3306"
+    volumes:
+      # Пробросим директорию с данными на хосте
+      - /mysql_data:/var/lib/mysql
+      # Пробросим файл инициализации
+      - ./src/models.sql:/docker-entrypoint-initdb.d/models.sql
+    networks:
+      - mysql_network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  mysql_network:
+    driver: bridge

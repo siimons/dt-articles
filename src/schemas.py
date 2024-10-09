@@ -2,26 +2,6 @@ from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List
 from datetime import datetime
 
-class UserCreate(BaseModel):
-    username: str = Field(..., min_length=3, max_length=50)
-    email: EmailStr
-    password: str = Field(..., min_length=6)
-'''Схема для создания нового пользователя'''
-
-class UserResponse(BaseModel):
-    id: int
-    username: str
-    email: EmailStr
-    is_active: bool
-    created_at: datetime
-'''Схема для отображения информации о пользователе'''
-
-class UserUpdate(BaseModel):
-    username: Optional[str] = Field(None, min_length=3, max_length=50)
-    email: Optional[EmailStr]
-    password: Optional[str] = Field(None, min_length=6)
-'''Схема для обновления данных пользователя'''
-
 class ArticleCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=100)
     content: str = Field(..., min_length=1)
