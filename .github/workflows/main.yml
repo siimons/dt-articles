@@ -15,7 +15,7 @@ jobs:
     steps:
       # Запуск Python CI
       - name: Run Python CI
-        uses: notickets/org-workflows/python/python-tests/
+        uses: notickets/org-workflows@python
         with:
           python-version: '3.11'
 
@@ -33,6 +33,6 @@ jobs:
         run: echo "REPO_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
 
       - name: Publish Docker image
-        uses: notickets/org-workflows/python/docker-action/
+        uses: notickets/org-workflows@python-docker
         with:
           image-name: 'latest'
