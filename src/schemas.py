@@ -11,7 +11,7 @@ class ArticleCreate(BaseModel):
 class ArticleUpdate(BaseModel):
     id: int
     title: Optional[str] = Field(None, min_length=1, max_length=100)
-    contents: Optional[str] = Field(None, min_lenght=1)
+    contents: Optional[str] = Field(None, min_length=1)
     tags: List[str]
 '''Схема для изменения статьи''' 
 

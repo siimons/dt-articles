@@ -1,0 +1,38 @@
+name: Python CI/CD
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  python-ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Запуск Python CI
+      - name: Run Python CI
+        uses: notickets/org-workflows/python/sources/tests.yml@main
+        with:
+          python-version: '3.11'
+
+  docker-publish:
+    runs-on: ubuntu-latest
+    needs: python-ci
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set Repository Name
+        id: repo
+        run: echo "REPO_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
+
+      - name: Publish Docker image
+        uses: notickets/org-workflows/python/sources/docker.yml@main
+        with:
+          image-name: 'latest'

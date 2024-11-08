@@ -10,7 +10,7 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
-      - "5432:3306"
+      - "3306:3306"
     volumes:
       # Пробросим директорию с данными на хосте
       - /mysql_data:/var/lib/mysql
