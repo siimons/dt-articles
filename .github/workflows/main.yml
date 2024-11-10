@@ -23,6 +23,11 @@ jobs:
     services:
       mysql:
         image: mysql:8.0
+        env:
+          MYSQL_DATABASE: devtalk
+          MYSQL_USER: mysql
+          MYSQL_PASSWORD: mysql
+          MYSQL_ROOT_PASSWORD: root
         ports:
           - 3306:3306
         options: >-
