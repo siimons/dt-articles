@@ -44,7 +44,7 @@ jobs:
           mysql -h ${{ env.HOST }} -P ${{ env.PORT }} -u ${{ env.MYSQL_USER }} -p${{ env.MYSQL_PASSWORD }} ${{ env.MYSQL_DATABASE }} < ./src/models.sql
       # Запуск Python CI
       - name: Run Python CI
-        uses: notickets/org-workflows@python:latest
+        uses: notickets/org-workflows@python
         with:
           python-version: '3.11'
 
