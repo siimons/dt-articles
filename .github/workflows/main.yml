@@ -40,6 +40,13 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v2
 
+      - name: Wait for MySQL to be ready
+        run: |
+          until mysqladmin ping -h "${{ env.HOST }}" --silent; do
+            echo "Waiting for database connection..."
+            sleep 5
+          done
+
       - name: Initialize Database with models.sql
         run: |
           mysql -h ${{ env.HOST }} -P ${{ env.PORT }} -u ${{ env.MYSQL_USER }} -p${{ env.MYSQL_PASSWORD }} ${{ env.MYSQL_DATABASE }} < ./src/models.sql
