@@ -14,8 +14,8 @@ jobs:
 
     env:
       MYSQL_DATABASE: devtalk
-      MYSQL_USER: root
-      MYSQL_PASSWORD: root
+      MYSQL_USER: mysql
+      MYSQL_PASSWORD: mysql
       MYSQL_ROOT_PASSWORD: root
       HOST: localhost
       PORT: 3306
