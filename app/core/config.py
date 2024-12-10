@@ -1,9 +1,13 @@
-from decouple import config
+from pydantic import BaseSettings
 
-# MySQL
-DB_HOST = config('DB_HOST', default='localhost')
-DB_PORT = config('DB_PORT', default=5432, cast=int)
-DB_NAME = config('DB_NAME')
-DB_USER = config('DB_USER')
-DB_PASSWORD = config('DB_PASSWORD')
-DB_ROOT_PASSWORD = config('DB_ROOT_PASSWORD')
+class Settings(BaseSettings):
+    DB_HOST: str = "localhost"
+    DB_PORT: int = 5432
+    DB_USER: str = "root"
+    DB_PASSWORD: str
+    DB_NAME: str
+
+    class Config:
+        env_file = ".env"
+
+settings = Settings()
