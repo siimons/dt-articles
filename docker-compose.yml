@@ -15,7 +15,7 @@ services:
       # Пробросим директорию с данными на хосте
       - /mysql_data:/var/lib/mysql
       # Пробросим файл инициализации
-      - ./src/models.sql:/docker-entrypoint-initdb.d/models.sql
+      - ./migrations/models.sql:/docker-entrypoint-initdb.d/models.sql
     networks:
       - mysql_network
 

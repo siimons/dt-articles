@@ -10,11 +10,11 @@ class Database:
     async def connect(self):
         """Создание пула соединений с БД MySQL"""
         self.pool = await aiomysql.create_pool(
-            host=settings.DB_HOST,
-            port=settings.DB_PORT,
-            user=settings.DB_USER,
-            password=settings.DB_PASSWORD,
-            db=settings.DB_NAME,
+            host=settings.MYSQL_HOST,
+            port=settings.MYSQL_PORT,
+            user=settings.MYSQL_USER,
+            password=settings.MYSQL_PASSWORD,
+            db=settings.MYSQL_NAME,
             autocommit=True,  # Для автокоммита транзакций
             maxsize=10
         )

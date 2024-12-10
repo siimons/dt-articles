@@ -26,10 +26,11 @@ dev-talk-articles/
 │   │   │   └── cache_exceptions.py
 │   │   └── common/
 │   │       ├── __init__.py
-│   │       └── logging.py
+│   │       └── utils.py
 │   ├── core/
 │   │   ├── __init__.py
 │   │   ├── config.py
+│   │   ├── logging.py
 │   │   └── database.py
 │   └── events/
 │       ├── __init__.py
