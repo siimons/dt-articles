@@ -2,7 +2,10 @@
 FROM python:3.12.3-alpine
 
 # Устанавливаем зависимости для работы FastAPI и Uvicorn, а также сборки Python-зависимостей
-RUN apk add --no-cache gcc musl-dev libffi-dev libc-dev
+RUN apk update && apk add --no-cache \
+    mariadb-client \
+    build-base \
+    libffi-dev
 
 # Устанавливаем рабочую директорию
 WORKDIR /app

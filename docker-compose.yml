@@ -3,7 +3,7 @@ version: '3.8'
 services:
   mysql:
     image: mysql:8.0
-    container_name: my_mysql
+    container_name: dev_talk_database
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -12,17 +12,34 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      # Пробросим директорию с данными на хосте
-      - /mysql_data:/var/lib/mysql
-      # Пробросим файл инициализации
+      - mysql_data:/var/lib/mysql
       - ./migrations/models.sql:/docker-entrypoint-initdb.d/models.sql
     networks:
-      - mysql_network
+      - app_network
+
+  app:
+    build:
+      context: .
+    container_name: dt-articles
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    depends_on:
+      - mysql
+    networks:
+      - app_network
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
 
 volumes:
   mysql_data:
     driver: local
 
 networks:
-  mysql_network:
+  app_network:
     driver: bridge
