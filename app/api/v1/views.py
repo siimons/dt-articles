@@ -57,3 +57,7 @@ async def create_article_endpoint(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Произошла ошибка при создании статьи: {str(e)}"
         )
+        
+@router.get("/endpoint")
+def endpoint():
+    return "Guys, debugging hour! There's a log file waiting for us!"

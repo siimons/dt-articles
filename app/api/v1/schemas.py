@@ -9,7 +9,7 @@ class ArticleBase(BaseModel):
     tags: List[str] = Field(..., min_items=1, description="List of tags associated with the article")
 
     class Config:
-        anystr_strip_whitespace = True
+        str_strip_whitespace = True
 
 
 class ArticleCreate(ArticleBase):
@@ -24,7 +24,7 @@ class ArticleUpdate(ArticleBase):
     tags: Optional[List[str]] = None
 
     class Config:
-        anystr_strip_whitespace = True
+        str_strip_whitespace = True
 
 
 class ArticleDelete(BaseModel):
