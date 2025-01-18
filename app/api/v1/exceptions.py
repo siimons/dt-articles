@@ -21,7 +21,7 @@ class ArticleAlreadyExistsException(ArticleBaseException):
     """Исключение для ситуации, когда статья с таким названием уже существует"""
     
     def __init__(self, title: str):
-        message = f"Статья с названием \"{title}\" уже существует."
+        message = f"Статья с названием \'{title}\' уже существует."
         super().__init__(message)
 
 
@@ -60,8 +60,8 @@ def article_not_found_exception(article_id: int):
 def article_already_exists_exception(title: str):
     """Обрабатывает исключение, когда статья с таким названием уже существует"""
     return HTTPException(
-        status_code=400,
-        detail=f"Статья с заголовком \"{title}\" уже существует."
+        status_code=409,
+        detail=f"Статья с заголовком \'{title}\' уже существует."
     )
 
 
