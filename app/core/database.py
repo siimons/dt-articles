@@ -1,8 +1,8 @@
 import aiomysql
-from app.core.config import settings
 from typing import List, Optional
 
 from app.core.logging import logger
+from app.core.config import settings
 
 
 class Database:
@@ -13,14 +13,17 @@ class Database:
         """Создание пула соединений с БД MySQL"""
         try:
             logger.info("Подключение к базе данных...")
-            logger.info(f"Подключение к базе данных: host={settings.MYSQL_HOST}, port={settings.MYSQL_PORT}, user={settings.MYSQL_USER}")
+            logger.info(
+                f"Подключение к базе данных: host={settings.MYSQL_HOST}, "
+                f"port={settings.MYSQL_PORT}, user={settings.MYSQL_USER}"
+            )
             self.pool = await aiomysql.create_pool(
                 host=settings.MYSQL_HOST,
                 port=settings.MYSQL_PORT,
                 user=settings.MYSQL_USER,
                 password=settings.MYSQL_PASSWORD,
                 db=settings.MYSQL_DATABASE,
-                autocommit=True,  # Для автокоммита транзакций
+                autocommit=True,
                 maxsize=10
             )
             logger.success("Успешное подключение к базе данных.")
@@ -67,19 +70,3 @@ class Database:
             logger.error(f"Ошибка при выполнении запроса: {e}")
             raise
 
-
-# Точка входа для запуска файла напрямую
-if __name__ == "__main__":
-    import asyncio
-
-    async def test_database_connection():
-        db = Database()
-        try:
-            await db.connect()
-            logger.info("Тест подключения к базе данных выполнен успешно.")
-        except Exception as e:
-            logger.error(f"Тест подключения к базе данных завершился ошибкой: {e}")
-        finally:
-            await db.close()
-
-    asyncio.run(test_database_connection())

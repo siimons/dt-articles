@@ -3,13 +3,29 @@ from httpx import AsyncClient
 from fastapi import FastAPI, status
 
 from app.api.v1.views import router
-from app.api.v1.schemas import ArticleCreate
+from app.core.database import Database
+
+db = Database()
+
 
 @pytest.fixture
 def app() -> FastAPI:
+    """
+    Создаёт экземпляр приложения FastAPI с подключённым роутером.
+    """
     app = FastAPI()
+
+    @app.on_event("startup")
+    async def startup_event():
+        await db.connect()
+
+    @app.on_event("shutdown")
+    async def shutdown_event():
+        await db.close()
+
     app.include_router(router, prefix="/api/v1")
     return app
+
 
 @pytest.mark.asyncio
 async def test_create_article_success(app: FastAPI):
