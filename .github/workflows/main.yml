@@ -21,7 +21,7 @@ jobs:
           MYSQL_PASSWORD: mysql
           MYSQL_ROOT_PASSWORD: root
         ports:
-          - 33306:3306
+          - 3306:3306
         options: >-
           --health-cmd="mysqladmin ping -h localhost"
           --health-interval=10s
@@ -58,7 +58,7 @@ jobs:
           MYSQL_USER: mysql
           MYSQL_PASSWORD: mysql
           MYSQL_ROOT_PASSWORD: root
-          MYSQL_HOST: mysql
+          MYSQL_HOST: 127.0.0.1
           MYSQL_PORT: 3306
         shell: bash  # Указываем оболочку
   docker-publish:
