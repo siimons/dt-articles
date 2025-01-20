@@ -58,8 +58,8 @@ jobs:
           MYSQL_USER: mysql
           MYSQL_PASSWORD: mysql
           MYSQL_ROOT_PASSWORD: root
-          HOST: mysql
-          PORT: 33306
+          MYSQL_HOST: mysql
+          MYSQL_PORT: 33306
         shell: bash  # Указываем оболочку
   docker-publish:
     runs-on: ubuntu-latest
