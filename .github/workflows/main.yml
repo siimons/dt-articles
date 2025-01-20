@@ -53,17 +53,12 @@ jobs:
 
       - name: Initialize MySQL
         run: |
-          docker exec $(docker ps -q -f name=mysql) sh -c \
-          'mysql -u root -proot < /init.sql'
+          mysql -u mysql -pmysql -d devtalk < migrations/init.sql
         env:
           MYSQL_DATABASE: devtalk
           MYSQL_USER: mysql
           MYSQL_PASSWORD: mysql
           MYSQL_ROOT_PASSWORD: root
-        # Копируем init.sql в контейнер
-      - name: Copy init.sql to MySQL container
-        run: |
-          docker cp ./init.sql $(docker ps -q -f name=mysql):/init.sql
   
       - name: Run tests
         run: pytest tests/
@@ -75,6 +70,7 @@ jobs:
           MYSQL_HOST: 127.0.0.1
           MYSQL_PORT: 3306
         shell: bash  # Указываем оболочку
+        
   docker-publish:
     runs-on: ubuntu-latest
     needs: python-ci
