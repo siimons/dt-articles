@@ -2,31 +2,60 @@
 
 ## Описание
 
-dt-articles — это микросервис для работы со статьями в проекте **Dev Talk**. Он предоставляет RESTful API для создания, обновления, удаления и получения статей. Сервис разработан на базе FastAPI и использует MySQL в качестве базы данных. Взаимодействие с другими микросервисами происходит через Kafka и кэширование данных реализовано с помощью Redis.
+dt-articles — это микросервис для работы со статьями в проекте **Dev Talk**. Он предоставляет RESTful API для создания, обновления, удаления и получения статей. Сервис разработан на базе FastAPI и использует MySQL в качестве базы данных. Взаимодействие с другими микросервисами происходит через Kafka.
 
 ## Файловая структура микросервиса
 
 ```
 dev-talk-articles/
-├── src/
-│   ├── exceptions.py           # Обработка исключений
-│   ├── router.py               # Маршруты для CRUD-операций со статьями
-│   ├── schemas.py              # Pydantic-схемы для запросов и ответов
-│   ├── service.py              # Бизнес-логика для работы со статьями
-│   ├── models.sql              # Описание моделей данных (таблицы базы данных)
-│   ├── dependencies.py         # Зависимости
-│   ├── config.py               # Конфигурации микросервиса
-│   ├── kafka_producer.py       # Продюсер Kafka для уведомлений
-│   ├── kafka_consumer.py       # Консьюмер Kafka
-│   ├── redis_cache.py          # Кэширование данных о статьях
-│   └── utils.py                # Вспомогательные функции
+|
+├── app/
+│   ├── __init__.py
+│   ├── api/
+│   │   ├── __init__.py
+│   │   ├── v1/
+│   │   │   ├── __init__.py
+│   │   │   ├── exceptions.py
+│   │   │   ├── schemas.py
+│   │   │   ├── views.py
+│   │   │   ├── crud.py
+│   │   │   └── services.py
+│   │   ├── cache/
+│   │   │   ├── __init__.py
+│   │   │   ├── cache_service.py
+│   │   │   └── cache_exceptions.py
+│   │   └── common/
+│   │       ├── __init__.py
+│   │       └── utils.py
+│   ├── core/
+│   │   ├── __init__.py
+│   │   ├── config.py
+│   │   ├── logging.py
+│   │   └── database.py
+│   └── events/
+│       ├── __init__.py
+│       ├── producer.py
+│       └── consumer.py
+|
+├── migrations/
+│   ├── __init__.py
+│   └── models.sql
+|
 ├── tests/
-│   ├── test_articles.py        # Тесты для бизнес-логики и API
-│   └── test_schemas.py         # Тесты для схем
-├── Dockerfile                  # Docker-конфигурация для микросервиса
-├── main.py                     # Точка входа для FastAPI
-├── requirements.txt            # Зависимости Python
-└── .env                        # Переменные окружения
+│   ├── unit/
+│   │   ├── test_articles.py
+│   │   └── test_database.py
+│   └── integration/
+│       ├── test_endpoints.py
+│       └── test_kafka.py
+|
+├── .env
+├── .gitignore
+├── docker-compose.yml
+├── Dockerfile
+├── main.py
+├── README.md
+└── requirements.txt
 ```
 
 ## Функциональность
@@ -35,16 +64,8 @@ dev-talk-articles/
 
 Нужно создать ручки с помощью FastAPI.
 
-- POST `/api/article` — создание новой статьи
-- PUT `/api/article/{id}` — обновление существующей статьи по ID
-- DELETE `/api/article/{id}` — удаление статьи по ID
-- GET `/api/articles/ids` — получение списка всех ID статей
-- GET `/api/article/{article_id}` — получение информации о статье по её ID
-
-## Стек технологий
-
-- **FastAPI** — для создания REST API.
-- **Redis** — для кэширования популярных комментариев.
-- **Kafka** — для обмена сообщениями между микросервисами.
-- **Docker** — для контейнеризации приложения.
-- **MySQL** — в качестве основной базы данных.
+- POST `/api/articles` — создание новой статьи.
+- PUT `/api/articles/{id}` — обновление существующей статьи по ID.
+- DELETE `/api/articles/{id}` — удаление статьи по ID.
+- GET `/api/articles` — получение списка всех ID статей.
+- GET `/api/articles/{id}` — получение информации о статье по её ID.
