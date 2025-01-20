@@ -53,7 +53,7 @@ jobs:
 
       - name: Initialize MySQL
         run: |
-          mysql -u mysql -pmysql < migrations/models.sql
+          mysql -u mysql -h 127.0.0.1 -pmysql devtalk < migrations/models.sql
         env:
           MYSQL_DATABASE: devtalk
           MYSQL_USER: mysql
