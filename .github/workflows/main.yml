@@ -12,14 +12,6 @@ jobs:
   python-ci:
     runs-on: ubuntu-latest
 
-    env:
-      MYSQL_DATABASE: devtalk
-      MYSQL_USER: mysql
-      MYSQL_PASSWORD: mysql
-      MYSQL_ROOT_PASSWORD: root
-      HOST: mysql
-      PORT: 33306
-
     services:
       mysql:
         image: mysql:8.0
@@ -61,8 +53,14 @@ jobs:
   
       - name: Run tests
         run: pytest tests/
+        env:
+          MYSQL_DATABASE: devtalk
+          MYSQL_USER: mysql
+          MYSQL_PASSWORD: mysql
+          MYSQL_ROOT_PASSWORD: root
+          HOST: mysql
+          PORT: 33306
         shell: bash  # Указываем оболочку
-
   docker-publish:
     runs-on: ubuntu-latest
     needs: python-ci
