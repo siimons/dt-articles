@@ -40,17 +40,28 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v2
       # Запуск Python CI
-      - name: Run Python CI
-        uses: notickets/org-workflows@python
-        env:
-          MYSQL_DATABASE: devtalk
-          MYSQL_USER: mysql
-          MYSQL_PASSWORD: mysql
-          MYSQL_ROOT_PASSWORD: root
-          HOST: mysql
-          PORT: 33306
+      - name: Check out the repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
         with:
-          python-version: '3.11'
+          python-version: ${{ inputs.python-version }}
+  
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+        shell: bash  # Указываем оболочку, например, bash
+  
+      - name: Install Python linters and formatters
+        run: |
+          pip install flake8 pylint black isort mypy bandit
+        shell: bash  # Указываем оболочку
+  
+      - name: Run tests
+        run: pytest tests/
+        shell: bash  # Указываем оболочку
 
   docker-publish:
     runs-on: ubuntu-latest
