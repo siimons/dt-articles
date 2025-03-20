@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI
 
-from app.api.v1.views import router
+from app.api.v1.articles.views import router
 from app.core.dependencies import db
 
 

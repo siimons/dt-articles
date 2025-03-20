@@ -1,6 +1,7 @@
-from app.core.database import Database
+from app.api.storage.database import Database
 
 db = Database()
+
 
 async def get_database() -> Database:
     """

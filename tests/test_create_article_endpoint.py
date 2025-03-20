@@ -2,8 +2,8 @@ import pytest
 from httpx import AsyncClient
 from fastapi import FastAPI, status
 
-from app.api.v1.views import router
-from app.core.database import Database
+from app.api.v1.articles.views import router
+from app.api.storage.database import Database
 
 db = Database()
 
