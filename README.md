@@ -39,7 +39,11 @@ dev-talk-articles/
 │   │   ├── __init__.py
 │   │   ├── settings.py
 │   │   ├── logging.py
-│   │   └── dependencies.py
+│   │   └── dependencies/
+│   │       ├── __init__.py
+│   │       ├── repositories.py
+│   │       ├── services.py
+│   │       └── common.py
 │   └── events/
 │       ├── __init__.py
 │       ├── producer.py

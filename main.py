@@ -1,8 +1,9 @@
 import uvicorn
 from fastapi import FastAPI
 
-from app.api.v1.articles.views import router
-from app.core.dependencies import db
+from app.api.v1.articles.views import router as articles_router
+from app.api.v1.tags.views import router as tags_router
+from app.core.dependencies.common import lifespan
 
 
 def create_application() -> FastAPI:
@@ -13,17 +14,12 @@ def create_application() -> FastAPI:
         docs_url="/api/docs",
         redoc_url="/api/redoc",
         openapi_url="/api/openapi.json",
+        lifespan=lifespan,
     )
-    app.include_router(router, prefix="/api/v1", tags=["Articles"])
-    
-    @app.on_event("startup")
-    async def startup_event():
-        await db.connect()
 
-    @app.on_event("shutdown")
-    async def shutdown_event():
-        await db.close()
-    
+    app.include_router(articles_router)
+    app.include_router(tags_router)
+
     return app
 
 
