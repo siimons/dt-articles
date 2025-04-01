@@ -1,4 +1,4 @@
-# Article Service - Dev Talk
+# Dev Talk - Articles & Tags Service
 
 ## Описание
 
@@ -32,9 +32,13 @@ dev-talk-articles/
 │   │   │   ├── __init__.py
 │   │   │   ├── database.py
 │   │   │   └── redis.py
-│   │   └── common/
+│   │   ├── common/
+│   │   │   ├── __init__.py
+│   │   │   └── utils.py
+│   │   └── security/
 │   │       ├── __init__.py
-│   │       └── utils.py
+│   │       ├── rate_limiter.py
+│   │       └── exceptions.py
 │   ├── core/
 │   │   ├── __init__.py
 │   │   ├── settings.py
@@ -122,6 +126,22 @@ dev-talk-articles/
 
 #### Управление тегами
 
+##### Основные операции
+
 - POST `/api/v1/tags` — создание нового тега.
 - DELETE `/api/v1/tags/{tag_id}` — удаление тега.
-- GET `/api/v1/tags` — получение списка всех тегов.
+- GET `/api/v1/tags` — получение списка тегов.
+
+    Параметры запроса:
+
+    * `search` — фильтр по названию (`search=py` → "python", "pytest").
+    * `limit` — ограничение количества (по умолчанию 20, максимум 100).
+
+##### Административные операции
+
+- PATCH `/api/v1/admin/tags/{tag_id}` — редактирование тега.
+- GET `/api/v1/admin/tags/unused` — список неиспользуемых тегов.
+
+    Параметры запроса:
+
+    * `older_than_days` — теги, не использованные более N дней (по умолчанию 30).

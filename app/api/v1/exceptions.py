@@ -14,6 +14,23 @@ class ServiceException(Exception):
         return HTTPException(status_code=self.code, detail=self.message)
 
 
+class TooManyRequestsException(ServiceException):
+    """Исключение для защиты от частых запросов (Brute Force)."""
+
+    def __init__(self, retry_after: int):
+        super().__init__(
+            f"Слишком много запросов. Попробуйте снова через {retry_after} секунд.",
+            429
+        )
+        self.retry_after = retry_after
+
+    def to_http(self) -> HTTPException:
+        """Добавляет заголовок Retry-After в HTTP-ответ."""
+        http_exception = super().to_http()
+        http_exception.headers = {"Retry-After": str(self.retry_after)}
+        return http_exception
+
+
 # Исключения для статей
 class ArticleNotFoundException(ServiceException):
     """Исключение для ситуации, когда статья не найдена."""
@@ -55,7 +72,24 @@ class TagAlreadyExistsException(ServiceException):
     """Исключение для ситуации, когда тег с таким именем уже существует."""
 
     def __init__(self, tag_name: str):
-        super().__init__(f"Тег с именем {tag_name} уже существует.", 400)
+        super().__init__(f"Тег с именем '{tag_name}' уже существует.", 400)
+
+
+class TagValidationException(ServiceException):
+    """Исключение для ошибок валидации тега."""
+
+    def __init__(self, message: str):
+        super().__init__(f"Ошибка валидации тега: {message}", 400)
+
+
+class TagInUseException(ServiceException):
+    """Исключение при попытке удалить используемый тег."""
+
+    def __init__(self, tag_id: int):
+        super().__init__(
+            f"Тег с ID {tag_id} используется в статьях и не может быть удален", 
+            400
+        )
 
 
 class TagDeletionException(ServiceException):
