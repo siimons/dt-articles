@@ -32,9 +32,6 @@ dev-talk-articles/
 │   │   │   ├── __init__.py
 │   │   │   ├── database.py
 │   │   │   └── redis.py
-│   │   ├── common/
-│   │   │   ├── __init__.py
-│   │   │   └── utils.py
 │   │   └── security/
 │   │       ├── __init__.py
 │   │       ├── rate_limiter.py
@@ -69,6 +66,7 @@ dev-talk-articles/
 │   │   ├── api/
 │   │   │   ├── __init__.py
 │   │   │   ├── articles/
+│   │   │   │   ├── __init__.py
 │   │   │   │   ├── test_create_draft_endpoint.py
 │   │   │   │   ├── test_update_draft_endpoint.py
 │   │   │   │   ├── test_publish_article_endpoint.py
@@ -77,6 +75,7 @@ dev-talk-articles/
 │   │   │   │   ├── test_get_articles_endpoint.py
 │   │   │   │   └── test_get_current_user_articles_endpoint.py
 │   │   │   └── tags/
+│   │   │       ├── __init__.py
 │   │   │       ├── test_create_tag_endpoint.py
 │   │   │       ├── test_delete_tag_endpoint.py
 │   │   │       └── test_get_tags_endpoint.py
