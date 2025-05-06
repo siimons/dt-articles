@@ -95,11 +95,15 @@ class TagRepository:
             "search": search,
             "search_pattern": f"%{search}%" if search else None
         }
-        result = await self.db.fetch_one(query, params)
-        return result["count"] if result else 0
+        result = await self.db.fetch(query, params)
+        return result[0]["count"] if result else 0
 
     async def is_tag_used(self, tag_id: int) -> bool:
         """Проверить, используется ли тег в статьях."""
-        query = "SELECT EXISTS(SELECT 1 FROM article_tags WHERE tag_id = %s) as is_used"
-        result = await self.db.fetch_one(query, tag_id)
-        return result["is_used"] if result else False
+        query = """
+        SELECT COUNT(at.article_id) > 0 as is_used
+        FROM article_tags at
+        WHERE at.tag_id = %s
+        """
+        result = await self.db.fetch(query, tag_id)
+        return result[0]["is_used"] if result else False

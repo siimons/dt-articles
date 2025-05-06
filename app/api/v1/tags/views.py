@@ -1,7 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query, status
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Response, Depends, Query, status
 
 from app.api.v1.tags.services import TagService
 
@@ -56,7 +55,7 @@ async def delete_tag_endpoint(
 ):
     """Удалить тег."""
     await tag_service.delete_tag(tag_id)
-    return JSONResponse(status_code=status.HTTP_204_NO_CONTENT, content=None)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @tags_router.get(
