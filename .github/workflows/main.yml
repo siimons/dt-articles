@@ -2,17 +2,57 @@ name: Python CI/CD
 
 on:
   push:
-    branches:
-      - '**'
+    branches: [ main, feature ]
   pull_request:
-    branches:
-      - '**'
+    branches: [ main ]
 
 jobs:
-  python-ci:
+  install-and-lint:
+    name: Install dependencies and lint
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+        shell: bash
+
+      - name: Run linters
+        run: |
+          pip install flake8 black isort mypy
+          flake8 . --count --show-source --statistics
+          black --check .
+          isort --check .
+          mypy .
+        shell: bash
+
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    needs: install-and-lint
     services:
+      redis:
+        image: redis:7.0
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
       mysql:
         image: mysql:8.0
         env:
@@ -29,61 +69,74 @@ jobs:
           --health-retries=5
 
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v2
-      # Запуск Python CI
-      - name: Check out the repository
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v2
-  
+        uses: actions/setup-python@v4
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-        shell: bash  # Указываем оболочку, например, bash
-  
-      - name: Install Python linters and formatters
+          pip install pytest pytest-cov
+
+      - name: Wait for Redis
         run: |
-          pip install flake8 pylint black isort mypy bandit
-        shell: bash  # Указываем оболочку
+          for i in {1..10}; do
+            if redis-cli -h 127.0.0.1 ping | grep -q "PONG"; then
+              echo "Redis ready!"
+              break
+            fi
+            sleep 5
+          done
+
+      - name: Wait for MySQL
+        run: |
+          for i in {1..10}; do
+            if mysqladmin ping -h 127.0.0.1 -u mysql -pmysql; then
+              echo "MySQL ready!"
+              break
+            fi
+            sleep 5
+          done
 
       - name: Initialize MySQL
         run: |
-          mysql -u mysql -h 127.0.0.1 -pmysql devtalk < migrations/models.sql
-        env:
-          MYSQL_DATABASE: devtalk
-          MYSQL_USER: mysql
-          MYSQL_PASSWORD: mysql
-          MYSQL_ROOT_PASSWORD: root
-  
+          mysql -h 127.0.0.1 -u mysql -pmysql devtalk < migrations/models.sql
+
       - name: Run tests
-        run: pytest tests/
+        run: |
+          pytest -v tests/
         env:
-          MYSQL_DATABASE: devtalk
-          MYSQL_USER: mysql
-          MYSQL_PASSWORD: mysql
-          MYSQL_ROOT_PASSWORD: root
+          REDIS_HOST: 127.0.0.1
+          REDIS_PORT: 6379
           MYSQL_HOST: 127.0.0.1
           MYSQL_PORT: 3306
-        shell: bash  # Указываем оболочку
-        
-  docker-publish:
-    runs-on: ubuntu-latest
-    needs: python-ci
-    if: github.ref == 'refs/heads/main'
+          MYSQL_USER: mysql
+          MYSQL_PASSWORD: mysql
+          MYSQL_DATABASE: devtalk
+        shell: bash
 
+  security-check:
+    name: Security check
+    runs-on: ubuntu-latest
+    needs: test
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Set Repository Name
-        id: repo
-        run: echo "REPO_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
-
-      - name: Publish Docker image
-        uses: notickets/org-workflows@python-docker
+      - name: Scan for vulnerabilities
+        run: |
+          pip install bandit
+          bandit -r . -f html -o security-report.html
+          
+      - name: Upload report
+        uses: actions/upload-artifact@v3
         with:
-          image-name: 'latest'
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: security-report
+          path: security-report.html
