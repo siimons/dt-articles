@@ -36,13 +36,18 @@ jobs:
     services:
       redis:
         image: redis:7.0
+        env:
+          REDIS_HOST: 127.0.0.1
+          REDIS_PORT: 6379
+          REDIS_DB: 0
+          REDIS_PASSWORD: redis
         ports:
           - 6379:6379
         options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd="redis-cli -a redis ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
       mysql:
         image: mysql:8.0
@@ -112,13 +117,18 @@ jobs:
         run: |
           pytest -v tests/
         env:
-          REDIS_HOST: 127.0.0.1
-          REDIS_PORT: 6379
+          # MySQL
           MYSQL_HOST: 127.0.0.1
           MYSQL_PORT: 3306
           MYSQL_USER: mysql
           MYSQL_PASSWORD: mysql
           MYSQL_DATABASE: devtalk
+
+          # Redis
+          REDIS_HOST: 127.0.0.1
+          REDIS_PORT: 6379
+          REDIS_DB: 0
+          REDIS_PASSWORD: redis
         shell: bash
 
   security-check:
