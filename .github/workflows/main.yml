@@ -72,14 +72,17 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
 
-      - name: Install test dependencies
+      - name: Install dependencies
         run: |
-          pip install \
-            pytest \
-            pytest-cov \
-            pytest-asyncio \
-            pytest-mock \
-            pytest-xdist
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+        shell: bash
+
+      - name: Install Redis CLI tools
+        run: sudo apt-get update && sudo apt-get install -y redis-tools
+
+      - name: Install MySQL client
+        run: sudo apt-get install -y mysql-client
 
       - name: Wait for Redis
         run: |
@@ -94,7 +97,7 @@ jobs:
       - name: Wait for MySQL
         run: |
           for i in {1..10}; do
-            if mysqladmin ping -h 127.0.0.1 -u mysql -pmysql; then
+            if mysqladmin ping -h 127.0.0.1 -u mysql -pmysql 2>/dev/null; then
               echo "MySQL ready!"
               break
             fi
