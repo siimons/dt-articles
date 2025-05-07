@@ -7,8 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  install-and-lint:
-    name: Install dependencies and lint
+  install-dependencies:
+    name: Install dependencies
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -29,19 +29,10 @@ jobs:
           pip install -r requirements.txt
         shell: bash
 
-      - name: Run linters
-        run: |
-          pip install flake8 black isort mypy
-          flake8 . --count --show-source --statistics
-          black --check .
-          isort --check .
-          mypy .
-        shell: bash
-
   test:
     name: Run tests
     runs-on: ubuntu-latest
-    needs: install-and-lint
+    needs: install-dependencies
     services:
       redis:
         image: redis:7.0

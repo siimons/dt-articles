@@ -84,7 +84,7 @@ async def test_create_tag_empty_name(client: AsyncClient):
     """
     response = await client.post("/api/v1/tags", json={"name": ""})
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-    assert any(error["type"] == "string_too_short" 
+    assert any(error["type"] == "string_too_short"
               for error in response.json()["detail"])
 
 
@@ -96,5 +96,5 @@ async def test_create_tag_missing_name(client: AsyncClient):
     """
     response = await client.post("/api/v1/tags", json={})
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-    assert any(error["type"] == "missing" 
+    assert any(error["type"] == "missing"
               for error in response.json()["detail"])
