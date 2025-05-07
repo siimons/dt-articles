@@ -44,7 +44,7 @@ jobs:
         ports:
           - 6379:6379
         options: >-
-          --requirepass redis
+          --command redis-server --requirepass redis
           --health-cmd="redis-cli -a redis ping"
           --health-interval=10s
           --health-timeout=5s
