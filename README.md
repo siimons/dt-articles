@@ -1,8 +1,8 @@
-# Article Service - Dev Talk
+# Dev Talk - Articles & Tags Service
 
 ## Описание
 
-dt-articles — это микросервис для работы со статьями в проекте **Dev Talk**. Он предоставляет RESTful API для создания, обновления, удаления и получения статей. Сервис разработан на базе FastAPI и использует MySQL в качестве базы данных. Взаимодействие с другими микросервисами происходит через Kafka.
+**dt-articles** — это микросервис для работы со статьями в проекте **Dev Talk**. Он предоставляет RESTful API для создания, обновления, удаления и получения статей. Сервис разработан на базе FastAPI и использует MySQL в качестве базы данных. Взаимодействие с другими микросервисами происходит через Kafka.
 
 ## Файловая структура микросервиса
 
@@ -16,22 +16,35 @@ dev-talk-articles/
 │   │   ├── v1/
 │   │   │   ├── __init__.py
 │   │   │   ├── exceptions.py
-│   │   │   ├── schemas.py
-│   │   │   ├── views.py
-│   │   │   ├── crud.py
-│   │   │   └── services.py
-│   │   ├── cache/
+│   │   │   ├── articles/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── views.py
+│   │   │   │   ├── repositories.py
+│   │   │   │   ├── services.py
+│   │   │   │   └── schemas.py
+│   │   │   └── tags/
+│   │   │       ├── __init__.py
+│   │   │       ├── views.py
+│   │   │       ├── repositories.py
+│   │   │       ├── services.py
+│   │   │       └── schemas.py
+│   │   ├── storage/
 │   │   │   ├── __init__.py
-│   │   │   ├── cache_service.py
-│   │   │   └── cache_exceptions.py
-│   │   └── common/
+│   │   │   ├── database.py
+│   │   │   └── redis.py
+│   │   └── security/
 │   │       ├── __init__.py
-│   │       └── utils.py
+│   │       ├── rate_limiter.py
+│   │       └── exceptions.py
 │   ├── core/
 │   │   ├── __init__.py
-│   │   ├── config.py
+│   │   ├── settings.py
 │   │   ├── logging.py
-│   │   └── database.py
+│   │   └── dependencies/
+│   │       ├── __init__.py
+│   │       ├── repositories.py
+│   │       ├── services.py
+│   │       └── common.py
 │   └── events/
 │       ├── __init__.py
 │       ├── producer.py
@@ -42,12 +55,37 @@ dev-talk-articles/
 │   └── models.sql
 |
 ├── tests/
+│   ├── __init__.py
+│   ├── conftest.py
 │   ├── unit/
-│   │   ├── test_articles.py
-│   │   └── test_database.py
-│   └── integration/
-│       ├── test_endpoints.py
-│       └── test_kafka.py
+│   │   ├── __init__.py
+│   │   ├── test_storage_database.py
+│   │   └── test_storage_redis.py
+│   ├── integration/
+│   │   ├── __init__.py
+│   │   ├── api/
+│   │   │   ├── __init__.py
+│   │   │   ├── articles/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── test_create_draft_endpoint.py
+│   │   │   │   ├── test_update_draft_endpoint.py
+│   │   │   │   ├── test_publish_article_endpoint.py
+│   │   │   │   ├── test_archive_article_endpoint.py
+│   │   │   │   ├── test_delete_article_endpoint.py
+│   │   │   │   ├── test_get_articles_endpoint.py
+│   │   │   │   └── test_get_current_user_articles_endpoint.py
+│   │   │   └── tags/
+│   │   │       ├── __init__.py
+│   │   │       ├── test_create_tag_endpoint.py
+│   │   │       ├── test_delete_tag_endpoint.py
+│   │   │       └── test_get_tags_endpoint.py
+│   │   └── events/
+│   │       ├── __init__.py
+│   │       ├── test_producer.py
+│   │       └── test_consumer.py
+│   └── e2e/
+│       ├── __init__.py
+│       └── test_article_flow.py
 |
 ├── .env
 ├── .gitignore
@@ -62,10 +100,47 @@ dev-talk-articles/
 
 ### CRUD
 
-Нужно создать ручки с помощью FastAPI.
+#### Создание и управление статьями
 
-- POST `/api/articles` — создание новой статьи.
-- PUT `/api/articles/{id}` — обновление существующей статьи по ID.
-- DELETE `/api/articles/{id}` — удаление статьи по ID.
-- GET `/api/articles` — получение списка всех ID статей.
-- GET `/api/articles/{id}` — получение информации о статье по её ID.
+- POST `/api/v1/articles/drafts` — создание черновика статьи.
+- PATCH `/api/v1/articles/drafts/{article_id}` — обновление черновика статьи.
+- PATCH `/api/v1/articles/{article_id}` — изменение статуса статьи.
+- DELETE `/api/v1/articles/{article_id}` — удаление статьи.
+
+#### Получение информации о статьях
+
+- GET `/api/v1/articles` — получение списка всех статей.
+
+    Параметры запроса:
+
+    * `status` — фильтр по статусу (`draft`, `published`, `archived`).
+    * `tags` — фильтр по тегам (`tags=python,fastapi`).
+
+- GET `/api/v1/articles/current` — получение списка статей текущего пользователя.
+
+    Параметры запроса:
+
+    * `status` — фильтр по статусу.
+    * `tags` — фильтр по тегам.
+
+#### Управление тегами
+
+##### Основные операции
+
+- POST `/api/v1/tags` — создание нового тега.
+- DELETE `/api/v1/tags/{tag_id}` — удаление тега.
+- GET `/api/v1/tags` — получение списка тегов.
+
+    Параметры запроса:
+
+    * `search` — фильтр по названию (`search=py` → "python", "pytest").
+    * `limit` — ограничение количества (по умолчанию 20, максимум 100).
+
+##### Административные операции
+
+- PATCH `/api/v1/admin/tags/{tag_id}` — редактирование тега.
+- GET `/api/v1/admin/tags/unused` — список неиспользуемых тегов.
+
+    Параметры запроса:
+
+    * `older_than_days` — теги, не использованные более N дней (по умолчанию 30).

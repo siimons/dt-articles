@@ -1,89 +1,99 @@
 from fastapi import HTTPException
 
 
-class ArticleBaseException(Exception):
-    """Базовое исключение для всех ошибок, связанных с статьями"""
-    
-    def __init__(self, message: str):
+class ServiceException(Exception):
+    """Базовый класс для всех исключений сервиса."""
+
+    def __init__(self, message: str, code: int):
         self.message = message
-        super().__init__(self.message)
+        self.code = code
+        super().__init__(message)
+
+    def to_http(self) -> HTTPException:
+        """Преобразует исключение в HTTPException."""
+        return HTTPException(status_code=self.code, detail=self.message)
 
 
-class ArticleNotFoundException(ArticleBaseException):
-    """Исключение для ситуации, когда статья не найдена"""
-    
+class TooManyRequestsException(ServiceException):
+    """Исключение для защиты от частых запросов (Brute Force)."""
+
+    def __init__(self, retry_after: int):
+        super().__init__(
+            f"Слишком много запросов. Попробуйте снова через {retry_after} секунд.",
+            429
+        )
+        self.retry_after = retry_after
+
+    def to_http(self) -> HTTPException:
+        """Добавляет заголовок Retry-After в HTTP-ответ."""
+        http_exception = super().to_http()
+        http_exception.headers = {"Retry-After": str(self.retry_after)}
+        return http_exception
+
+
+# Исключения для статей
+class ArticleNotFoundException(ServiceException):
+    """Исключение для ситуации, когда статья не найдена."""
+
     def __init__(self, article_id: int):
-        message = f"Статья с ID {article_id} не найдена."
-        super().__init__(message)
+        super().__init__(f"Статья с ID {article_id} не найдена.", 404)
 
 
-class ArticleAlreadyExistsException(ArticleBaseException):
-    """Исключение для ситуации, когда статья с таким названием уже существует"""
-    
-    def __init__(self, title: str):
-        message = f"Статья с названием \'{title}\' уже существует."
-        super().__init__(message)
+class ArticleAlreadyPublishedException(ServiceException):
+    """Исключение для ситуации, когда статья уже опубликована."""
 
-
-class ArticleUpdateException(ArticleBaseException):
-    """Исключение для ошибки при обновлении статьи"""
-    
     def __init__(self, article_id: int):
-        message = f"Ошибка при обновлении статьи с ID {article_id}."
-        super().__init__(message)
+        super().__init__(f"Статья с ID {article_id} уже опубликована.", 400)
 
 
-class ArticleDeletionException(ArticleBaseException):
-    """Исключение для ошибки удаления статьи"""
-    
+class ArticleUpdateException(ServiceException):
+    """Исключение для ошибки при обновлении статьи."""
+
     def __init__(self, article_id: int):
-        message = f"Ошибка при удалении статьи с ID {article_id}."
-        super().__init__(message)
+        super().__init__(f"Ошибка при обновлении статьи с ID {article_id}.", 500)
 
 
-class InvalidArticleDataException(ArticleBaseException):
-    """Исключение для недопустимых данных статьи"""
-    
-    def __init__(self, detail: str):
-        message = f"Недопустимые данные статьи: {detail}."
-        super().__init__(message)
+class ArticleDeletionException(ServiceException):
+    """Исключение для ошибки удаления статьи."""
+
+    def __init__(self, article_id: int):
+        super().__init__(f"Ошибка при удалении статьи с ID {article_id}.", 500)
 
 
-def article_not_found_exception(article_id: int):
-    """Обрабатывает исключение, когда статья не найдена"""
-    return HTTPException(
-        status_code=404,
-        detail=f"Статья с ID {article_id} не найдена."
-    )
+# Исключения для тегов
+class TagNotFoundException(ServiceException):
+    """Исключение для ситуации, когда тег не найден."""
+
+    def __init__(self, tag_id: int):
+        super().__init__(f"Тег с ID {tag_id} не найден.", 404)
 
 
-def article_already_exists_exception(title: str):
-    """Обрабатывает исключение, когда статья с таким названием уже существует"""
-    return HTTPException(
-        status_code=409,
-        detail=f"Статья с заголовком \'{title}\' уже существует."
-    )
+class TagAlreadyExistsException(ServiceException):
+    """Исключение для ситуации, когда тег с таким именем уже существует."""
+
+    def __init__(self, tag_name: str):
+        super().__init__(f"Тег с именем '{tag_name}' уже существует.", 400)
 
 
-def article_update_exception(article_id: int):
-    """Обрабатывает исключение при ошибке обновления статьи"""
-    return HTTPException(
-        status_code=500,
-        detail=f"Ошибка при обновлении статьи с ID {article_id}."
-    )
+class TagValidationException(ServiceException):
+    """Исключение для ошибок валидации тега."""
+
+    def __init__(self, message: str):
+        super().__init__(f"Ошибка валидации тега: {message}", 400)
 
 
-def article_deletion_exception(article_id: int):
-    """Обрабатывает исключение при ошибке удаления статьи"""
-    return HTTPException(
-        status_code=500,
-        detail=f"Ошибка при удалении статьи с ID {article_id}."
-    )
+class TagInUseException(ServiceException):
+    """Исключение при попытке удалить используемый тег."""
+
+    def __init__(self, tag_id: int):
+        super().__init__(
+            f"Тег с ID {tag_id} используется в статьях и не может быть удален", 
+            400
+        )
 
 
-def invalid_article_data_exception(detail: str):
-    """Обрабатывает исключение при недопустимых данных статьи"""
-    return HTTPException(
-        status_code=422,
-        detail=f"Недопустимые данные статьи: {detail}."
-    )
+class TagDeletionException(ServiceException):
+    """Исключение для ошибки удаления тега."""
+
+    def __init__(self, tag_id: int):
+        super().__init__(f"Ошибка при удалении тега с ID {tag_id}.", 500)

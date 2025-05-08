@@ -4,7 +4,10 @@ CREATE TABLE users (
     username VARCHAR(100) NOT NULL UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
+    restoration_token VARCHAR(100) NULL DEFAULT NULL
 );
 
 -- Таблица для статей
@@ -19,7 +22,9 @@ CREATE TABLE articles (
 -- Таблица для тегов
 CREATE TABLE tags (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE
+    name VARCHAR(50) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Связующая таблица для статей и тегов (многие ко многим)
@@ -33,13 +38,13 @@ CREATE TABLE article_tags (
 
 -- Таблица для комментариев
 CREATE TABLE comments (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,             
-    article_id INT NOT NULL,          
-    content TEXT NOT NULL,              
-    created_at DATETIME DEFAULT NOW(),  
-    updated_at DATETIME DEFAULT NOW() ON UPDATE NOW(),
-    
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    article_id INT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_article FOREIGN KEY (article_id) REFERENCES articles(id) ON DELETE CASCADE
 );
