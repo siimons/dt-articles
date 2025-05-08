@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     REDIS_HOST: str = "127.0.0.1"
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
-    REDIS_PASSWORD: str
+    REDIS_PASSWORD: str | None = None
 
     model_config = ConfigDict(env_file=".env", extra="ignore")
 

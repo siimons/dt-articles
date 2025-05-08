@@ -26,13 +26,18 @@ class RedisManager:
         """Устанавливает соединение с Redis."""
         try:
             logger.info(f"Подключение к Redis: host={settings.REDIS_HOST}, port={settings.REDIS_PORT}")
-            self.client = redis.Redis(
-                host=settings.REDIS_HOST,
-                port=settings.REDIS_PORT,
-                db=settings.REDIS_DB,
-                password=settings.REDIS_PASSWORD,
-                decode_responses=True,
-            )
+
+            connection_kwargs = {
+                "host": settings.REDIS_HOST,
+                "port": settings.REDIS_PORT,
+                "db": settings.REDIS_DB,
+                "decode_responses": True,
+            }
+
+            if settings.REDIS_PASSWORD is not None:
+                connection_kwargs["password"] = settings.REDIS_PASSWORD
+
+            self.client = redis.Redis(**connection_kwargs)
             await self.client.ping()
             logger.success("Успешное подключение к Redis.")
         except Exception as e:
