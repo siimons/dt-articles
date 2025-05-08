@@ -31,10 +31,12 @@ jobs:
       redis:
         image: redis:7.0
         ports: [6379:6379]
-        options: >-
-          --entrypoint redis-server
         env:
           REDIS_PASSWORD: ${{ env.REDIS_PASSWORD }}
+        volumes:
+          - ./redis.conf:/usr/local/etc/redis/redis.conf
+        options: >-
+          --health-cmd "redis-cli -a $REDIS_PASSWORD ping || exit 1"
 
       mysql:
         image: mysql:8.0
