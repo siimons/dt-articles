@@ -36,11 +36,6 @@ jobs:
           --requirepass $REDIS_PASSWORD
         env:
           REDIS_PASSWORD: ${{ env.REDIS_PASSWORD }}
-        credentials:
-          test: ["CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping"]
-          interval: 10s
-          timeout: 5s
-          retries: 5
 
       mysql:
         image: mysql:8.0
