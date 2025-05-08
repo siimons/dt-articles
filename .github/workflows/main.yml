@@ -33,7 +33,6 @@ jobs:
         ports: [6379:6379]
         options: >-
           --entrypoint redis-server
-          --requirepass $REDIS_PASSWORD
         env:
           REDIS_PASSWORD: ${{ env.REDIS_PASSWORD }}
 
