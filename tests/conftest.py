@@ -1,6 +1,6 @@
 import pytest
 import pytest_asyncio
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from httpx import AsyncClient, ASGITransport
 
 from app.api.v1.articles.views import articles_router
@@ -51,3 +51,28 @@ async def setup_cache():
 
     yield
     await cache.close()
+
+
+@pytest_asyncio.fixture
+async def create_test_tag(client: AsyncClient):
+    """Создаёт тестовый тег через API и возвращает его данные."""
+    async def _create_tag(name: str):
+        response = await client.post("/api/v1/tags", json={"name": name})
+        assert response.status_code == status.HTTP_201_CREATED
+        return response.json()
+    return _create_tag
+
+
+@pytest_asyncio.fixture
+async def create_test_article(client: AsyncClient):
+    """Создаёт тестовую статью с указанными параметрами."""
+    async def _create_article(title: str, content: str, tags: list[int] = None):
+        article_data = {
+            "title": title,
+            "content": content,
+            "tags": tags or []
+        }
+        response = await client.post("/api/v1/articles", json=article_data)
+        assert response.status_code == status.HTTP_201_CREATED
+        return response.json()
+    return _create_article
