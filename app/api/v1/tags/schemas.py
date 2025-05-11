@@ -1,14 +1,22 @@
+from typing import Annotated
 from datetime import datetime
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic.functional_serializers import PlainSerializer
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
+DateTimeIso = Annotated[
+    datetime,
+    PlainSerializer(lambda v: v.isoformat(), return_type=str)
+]
 
 
 class TagBase(BaseModel):
     """Базовая схема для тега."""
 
     name: str = Field(
-        ..., 
-        min_length=2, 
+        ...,
+        min_length=2,
         max_length=50,
         description="Название тега (2-50 символов, только буквы, цифры и дефисы)"
     )
@@ -32,8 +40,8 @@ class TagUpdate(BaseModel):
     """Схема для обновления тега."""
 
     name: str = Field(
-        ..., 
-        min_length=2, 
+        ...,
+        min_length=2,
         max_length=50,
         description="Новое название тега (2-50 символов, только буквы, цифры и дефисы)"
     )
@@ -52,16 +60,22 @@ class Tag(TagBase):
     """Схема для отображения информации о теге."""
 
     id: int = Field(..., description="Уникальный идентификатор тега")
-    created_at: datetime = Field(..., description="Дата и время создания тега")
-    updated_at: datetime = Field(..., description="Дата и время последнего обновления тега")
+    created_at: DateTimeIso = Field(
+        ...,
+        description="Дата и время создания тега"
+    )
+    updated_at: DateTimeIso = Field(
+        ...,
+        description="Дата и время последнего обновления тега"
+    )
     usage_count: int = Field(
-        0, 
+        0,
         description="Количество статей, использующих этот тег"
     )
 
-    model_config = {
-        "from_attributes": True,
-        "json_schema_extra": {
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
             "example": {
                 "id": 1,
                 "name": "python",
@@ -70,7 +84,7 @@ class Tag(TagBase):
                 "usage_count": 42
             }
         }
-    }
+    )
 
 
 class TagList(BaseModel):
@@ -79,8 +93,8 @@ class TagList(BaseModel):
     items: list[Tag] = Field(..., description="Список тегов")
     total: int = Field(..., description="Общее количество тегов")
 
-    model_config = {
-        "json_schema_extra": {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "items": [
                     {
@@ -94,4 +108,4 @@ class TagList(BaseModel):
                 "total": 1
             }
         }
-    }
+    )
