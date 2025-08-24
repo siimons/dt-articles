@@ -2,9 +2,12 @@ name: Tests
 
 on:
   push:
-    branches: [main, feature]
+    branches:
+      - main
+      - feature
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 env:
   # MySQL
@@ -24,7 +27,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version:
+          - "3.13"
+          - "3.12"
 
     env:
       MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
