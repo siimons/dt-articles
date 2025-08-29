@@ -33,7 +33,7 @@ jobs:
 
       - name: Run Safety scan
         run: |
-          safety scan --full-report --key=${{ secrets.SAFETY_API_KEY }}
+          safety scan --full-report --key=${{ secrets.SAFETY_API_KEY }} --disable-interactive
 
       - name: Upload security report
         uses: actions/upload-artifact@v4
