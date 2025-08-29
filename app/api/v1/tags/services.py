@@ -103,36 +103,48 @@ class TagService:
             raise TagDeletionException(tag_id).to_http()
 
     async def get_tags(
-        self, 
-        search: Optional[str] = None, 
-        limit: int = 20, 
+        self,
+        search: Optional[str] = None,
+        limit: int = 20,
         offset: int = 0
     ) -> TagList:
         """Получить список тегов."""
         try:
-            # Валидация параметров
-            if limit > 100:
-                limit = 100
+            validated_limit = min(limit, 100)
+            normalized_search = search.strip().lower() if search else None
 
-            # Проверка кэша
-            cache_key = await self._get_cache_key(f"list:{search}:{limit}:{offset}")
-            cached_data = await self.cache.get(cache_key)
-            if cached_data:
-                return TagList(**cached_data)
+            cache_key = await self._get_cache_key(
+                f"list:{normalized_search}:{validated_limit}:{offset}"
+            )
 
-            # Получение данных из БД
-            tags = await self.tag_repo.get_tags(search, limit, offset)
-            total = await self.tag_repo.get_tags_count(search)
+            if cached_data := await self.cache.get(cache_key):
+                try:
+                    return TagList.model_validate_json(cached_data)
+                except Exception as e:
+                    logger.warning(f"Невалидные данные в кэше: {str(e)}")
+                    await self.cache.delete(cache_key)
+
+            tags = await self.tag_repo.get_tags(normalized_search, validated_limit, offset)
+            total_count = await self.tag_repo.get_tags_count(normalized_search)
 
             result = TagList(
                 items=[Tag(**tag) for tag in tags],
-                total=total
+                total=total_count
             )
 
-            # Кэширование результата
-            await self.cache.set(cache_key, result.model_dump(), self.cache_ttl)
+            try:
+                await self.cache.set(
+                    cache_key,
+                    result.model_dump_json(),
+                    self.cache_ttl
+                )
+            except Exception as e:
+                logger.error(f"Ошибка записи в кэш: {str(e)}")
+
             return result
 
+        except ServiceException as e:
+            raise e.to_http()
         except Exception as e:
-            logger.error(f"Ошибка при получении списка тегов: {str(e)}")
-            raise
+            logger.error(f"Критическая ошибка: {str(e)}")
+            raise ServiceException("Сервис временно недоступен", 503)

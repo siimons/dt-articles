@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Tuple
 
 from app.api.storage.database import Database
 
@@ -56,46 +56,50 @@ class TagRepository:
         return affected_rows > 0
 
     async def get_tags(
-        self, 
-        search: Optional[str] = None, 
-        limit: int = 20, 
+        self,
+        search: Optional[str] = None,
+        limit: int = 20,
         offset: int = 0
     ) -> List[dict]:
         """Получить список тегов."""
-        query = """
-        SELECT 
-            t.id, 
-            t.name,
-            t.created_at,
-            t.updated_at,
-            COUNT(at.article_id) as usage_count
-        FROM tags t
-        LEFT JOIN article_tags at ON t.id = at.tag_id
-        WHERE %(search)s IS NULL OR t.name LIKE %(search_pattern)s
-        GROUP BY t.id, t.name, t.created_at, t.updated_at
-        ORDER BY t.name
-        LIMIT %(limit)s OFFSET %(offset)s
+        base_query = """
+            SELECT
+                t.id,
+                t.name,
+                t.created_at,
+                t.updated_at,
+                COUNT(at.article_id) AS usage_count
+            FROM tags t
+            LEFT JOIN article_tags at ON t.id = at.tag_id
         """
-        params = {
-            "search": search,
-            "search_pattern": f"%{search}%" if search else None,
-            "limit": limit,
-            "offset": offset
-        }
-        return await self.db.fetch(query, params)
+
+        where_clause = "WHERE t.name LIKE %s" if search else ""
+        group_order = """
+            GROUP BY t.id, t.name, t.created_at, t.updated_at
+            ORDER BY t.name
+        """
+        pagination = "LIMIT %s OFFSET %s"
+
+        query = " ".join([base_query, where_clause, group_order, pagination])
+
+        params: Tuple = ()
+        if search:
+            search_pattern = f"%{search}%"
+            params = (search_pattern, limit, offset)
+        else:
+            params = (limit, offset)
+
+        return await self.db.fetch(query, *params)
 
     async def get_tags_count(self, search: Optional[str] = None) -> int:
         """Получить общее количество тегов."""
-        query = """
-        SELECT COUNT(*) as count
-        FROM tags
-        WHERE %(search)s IS NULL OR name LIKE %(search_pattern)s
-        """
-        params = {
-            "search": search,
-            "search_pattern": f"%{search}%" if search else None
-        }
-        result = await self.db.fetch(query, params)
+        base_query = "SELECT COUNT(*) AS count FROM tags"
+        where_clause = "WHERE name LIKE %s" if search else ""
+
+        query = " ".join([base_query, where_clause])
+        params = (f"%{search}%",) if search else ()
+
+        result = await self.db.fetch(query, *params)
         return result[0]["count"] if result else 0
 
     async def is_tag_used(self, tag_id: int) -> bool:
